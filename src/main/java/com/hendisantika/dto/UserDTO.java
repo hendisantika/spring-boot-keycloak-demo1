@@ -2,6 +2,8 @@ package com.hendisantika.dto;
 
 import lombok.Data;
 
+import java.util.List;
+
 /**
  * Created by IntelliJ IDEA.
  * Project : spring-boot-keycloak-demo1
@@ -19,4 +21,6 @@ public class UserDTO {
     private String email;
     private String firstName;
     private String lastName;
+    private String description;
+    private List<String> businessId;
 }
