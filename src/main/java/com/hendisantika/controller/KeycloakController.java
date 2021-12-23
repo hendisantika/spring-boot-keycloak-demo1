@@ -72,7 +72,8 @@ public class KeycloakController {
         userRepresentation.setCredentials(Arrays.asList(credentials));
         userRepresentation.setEnabled(true);
         Map<String, List<String>> attributes = new HashMap<>();
-        attributes.put("description", Arrays.asList("A test user"));
+        attributes.put("description", Arrays.asList(userDTO.getDescription()));
+        attributes.put("businessID", userDTO.getBusinessId());
         userRepresentation.setAttributes(attributes);
         Keycloak keycloak = getKeycloakInstance();
         Response result = keycloak.realm(keycloakRealm).users().create(userRepresentation);
