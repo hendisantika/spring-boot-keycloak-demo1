@@ -30,3 +30,9 @@ Get All Users
 ```shell
 curl --location --request GET 'localhost:8888/keycloak/users'
 ```
+
+Delete User
+
+```shell
+curl --location --request DELETE 'localhost:8888/keycloak/users?username=user1'
+```
