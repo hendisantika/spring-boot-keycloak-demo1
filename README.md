@@ -24,3 +24,9 @@ curl --location --request POST 'localhost:8888/keycloak/users' \
         
 }'
 ```
+
+Get All Users
+
+```shell
+curl --location --request GET 'localhost:8888/keycloak/users'
+```
