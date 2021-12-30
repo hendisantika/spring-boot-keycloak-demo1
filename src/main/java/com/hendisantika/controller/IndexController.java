@@ -36,7 +36,7 @@ public class IndexController {
 
     //this method can be accessed by user whose role is admin
     @GetMapping
-    @RolesAllowed("admin")
+    @RolesAllowed({"admin", "user"})
     public ResponseEntity<List<Employee>> findAllEmployees() {
         return ResponseEntity.ok(employeeService.getAllEmployees());
     }

@@ -75,8 +75,25 @@ public class KeycloakController {
         attributes.put("description", Arrays.asList(userDTO.getDescription()));
         attributes.put("businessID", userDTO.getBusinessId());
         userRepresentation.setAttributes(attributes);
+
+        userRepresentation.setRealmRoles(Arrays.asList("user"));
         Keycloak keycloak = getKeycloakInstance();
+
         Response result = keycloak.realm(keycloakRealm).users().create(userRepresentation);
+        // Tambahan start
+//        RealmResource realmResource = keycloak.realm(keycloakRealm);
+//        UsersResource userResource = realmResource.users();
+//        RoleRepresentation testerRealmRole = realmResource.roles().get("tester").toRepresentation();
+//
+//        String userId = result.getLocation().getPath().replaceAll(".*/([^/]+)$", "$1");
+//        userResource.get(userId).roles().realmLevel().add(Arrays.asList(testerRealmRole));
+//
+//        ClientRepresentation app1Client = realmResource.clients().findByClientId("app1").get(0);
+//        RoleRepresentation userClientRole = realmResource.clients().get(app1Client.getId()).roles().get("user").toRepresentation();
+//
+//        userResource.get(userId).roles().clientLevel(app1Client.getId()).add(Arrays.asList(userClientRole));
+        // Tambahan end
+
         return new ResponseEntity<>(HttpStatus.valueOf(result.getStatus()));
     }
 
