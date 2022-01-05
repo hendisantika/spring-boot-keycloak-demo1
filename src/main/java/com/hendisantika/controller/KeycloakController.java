@@ -106,7 +106,14 @@ public class KeycloakController {
                 .filter(u -> u.getUsername().equals(userDTO.getUsername())).findFirst();
 
         UserResource userResource = keycloak.realm(keycloakRealm).users().get(newUser.get().getId());
-        userResource.roles().clientLevel(clientRepresentation.getId()).add( Arrays.asList(roles.get(0)));
+
+        //userResource.roles().clientLevel(clientRepresentation.getId()).add(Arrays.asList(roles.get(1)));
+        for (RoleRepresentation role : roles) {
+            if (role.getName().equalsIgnoreCase(userDTO.getRole().toLowerCase()) ){
+                userResource.roles().clientLevel(clientRepresentation.getId()).add(Arrays.asList(role));
+                break;
+            }
+        }
 
         return new ResponseEntity<>(HttpStatus.valueOf(result.getStatus()));
     }

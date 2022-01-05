@@ -23,4 +23,5 @@ public class UserDTO {
     private String lastName;
     private String description;
     private List<String> businessId;
+    private String role;
 }
