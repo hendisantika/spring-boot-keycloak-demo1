@@ -2,6 +2,7 @@ package com.hendisantika.controller;
 
 import com.hendisantika.dto.UserDTO;
 import org.keycloak.admin.client.Keycloak;
+import org.keycloak.admin.client.resource.RealmResource;
 import org.keycloak.admin.client.resource.UserResource;
 import org.keycloak.admin.client.resource.UsersResource;
 import org.keycloak.representations.idm.ClientRepresentation;
@@ -76,7 +77,11 @@ public class KeycloakController {
         attributes.put("businessID", userDTO.getBusinessId());
         userRepresentation.setAttributes(attributes);
 
-        userRepresentation.setRealmRoles(Arrays.asList("user"));
+//        userRepresentation.setRealmRoles(Arrays.asList("user"));
+//        userRepresentation.setClientRoles(new HashMap<String, List<String>>() {{
+//            put(keycloakClient, Arrays.asList("user"));
+//        }});
+
         Keycloak keycloak = getKeycloakInstance();
 
         Response result = keycloak.realm(keycloakRealm).users().create(userRepresentation);
@@ -93,6 +98,15 @@ public class KeycloakController {
 //
 //        userResource.get(userId).roles().clientLevel(app1Client.getId()).add(Arrays.asList(userClientRole));
         // Tambahan end
+
+        ClientRepresentation clientRepresentation = keycloak.realm(keycloakRealm).clients().findByClientId(keycloakClient).get(0);
+        List<RoleRepresentation> roles = keycloak.realm(keycloakRealm).clients().get(clientRepresentation.getId()).roles().list();
+
+        Optional<UserRepresentation> newUser = keycloak.realm(keycloakRealm).users().search(userDTO.getUsername()).stream()
+                .filter(u -> u.getUsername().equals(userDTO.getUsername())).findFirst();
+
+        UserResource userResource = keycloak.realm(keycloakRealm).users().get(newUser.get().getId());
+        userResource.roles().clientLevel(clientRepresentation.getId()).add( Arrays.asList(roles.get(0)));
 
         return new ResponseEntity<>(HttpStatus.valueOf(result.getStatus()));
     }
