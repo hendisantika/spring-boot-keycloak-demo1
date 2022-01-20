@@ -1,8 +1,8 @@
 package com.hendisantika.controller;
 
 import com.hendisantika.dto.UserDTO;
+import lombok.extern.slf4j.Slf4j;
 import org.keycloak.admin.client.Keycloak;
-import org.keycloak.admin.client.resource.RealmResource;
 import org.keycloak.admin.client.resource.UserResource;
 import org.keycloak.admin.client.resource.UsersResource;
 import org.keycloak.representations.idm.ClientRepresentation;
@@ -18,6 +18,8 @@ import org.springframework.web.bind.annotation.*;
 import javax.ws.rs.core.Response;
 import java.util.*;
 
+import static org.keycloak.OAuth2Constants.PASSWORD;
+
 /**
  * Created by IntelliJ IDEA.
  * Project : spring-boot-keycloak-demo1
@@ -28,6 +30,7 @@ import java.util.*;
  * Time: 12.46
  * To change this template use File | Settings | File Templates.
  */
+@Slf4j
 @RestController
 @RequestMapping("/keycloak/users")
 public class KeycloakController {
@@ -75,6 +78,8 @@ public class KeycloakController {
         Map<String, List<String>> attributes = new HashMap<>();
         attributes.put("description", Arrays.asList(userDTO.getDescription()));
         attributes.put("businessID", userDTO.getBusinessId());
+        attributes.put("dob", Arrays.asList(userDTO.getDob()));
+        attributes.put("phone", Arrays.asList(userDTO.getPhone()));
         userRepresentation.setAttributes(attributes);
 
 //        userRepresentation.setRealmRoles(Arrays.asList("user"));
@@ -109,7 +114,7 @@ public class KeycloakController {
 
         //userResource.roles().clientLevel(clientRepresentation.getId()).add(Arrays.asList(roles.get(1)));
         for (RoleRepresentation role : roles) {
-            if (role.getName().equalsIgnoreCase(userDTO.getRole().toLowerCase()) ){
+            if (role.getName().equalsIgnoreCase(userDTO.getRole().toLowerCase())) {
                 userResource.roles().clientLevel(clientRepresentation.getId()).add(Arrays.asList(role));
                 break;
             }
@@ -138,6 +143,13 @@ public class KeycloakController {
             attributes.put("description", Arrays.asList(description));
             userRepresentation.setAttributes(attributes);
             userResource.update(userRepresentation);
+
+            CredentialRepresentation cr = new CredentialRepresentation();
+            cr.setType("password");
+            cr.setValue("12345");
+            cr.setTemporary(false);
+            log.info("Password for user {} has been updated!", username);
+
             return ResponseEntity.ok().body(userRepresentation);
         } else {
             return ResponseEntity.badRequest().build();
@@ -150,6 +162,16 @@ public class KeycloakController {
         UsersResource users = keycloak.realm(keycloakRealm).users();
         users.search(username).stream()
                 .forEach(user -> keycloak.realm(keycloakRealm).users().delete(user.getId()));
+    }
+
+    @GetMapping("/search")
+    public List<UserRepresentation> searchUserByUsername(@RequestParam String username) {
+        log.info("Search username {}", username);
+        Keycloak keycloak = getKeycloakInstance();
+//        UsersResource users = keycloak.realm(keycloakRealm).users().search(username);
+        return keycloak.realm(keycloakRealm).users().search(username);
+//        return users.search(username).stream()
+//                .forEach(user -> keycloak.realm(keycloakRealm).users().search(username));
     }
 
     @GetMapping("/roles")
@@ -176,7 +198,7 @@ public class KeycloakController {
         }
     }
 
-//    @GetMapping("/roles2")
+    //    @GetMapping("/roles2")
 //    public List<String> getAllRoles(){
 //        List<String> availableRoles = keycloak
 //                .realm(realm)
@@ -187,5 +209,20 @@ public class KeycloakController {
 //                .collect(Collectors.toList());
 //        return availableRoles;
 //    }
+
+    @GetMapping("/reset")
+    public ResponseEntity<CredentialRepresentation> resetUserPassword(@RequestParam String username, @RequestParam String newPassword) {
+        Keycloak keycloak = getKeycloakInstance();
+        Optional<UserRepresentation> user = keycloak.realm(keycloakRealm).users().search(username).stream()
+                .filter(u -> u.getUsername().equals(username)).findFirst();
+        UserRepresentation userRepresentation = user.get();
+        UserResource userResource = keycloak.realm(keycloakRealm).users().get(userRepresentation.getId());
+        CredentialRepresentation newCredential = new CredentialRepresentation();
+        newCredential.setType(PASSWORD);
+        newCredential.setValue(newPassword);
+        newCredential.setTemporary(false);
+        userResource.resetPassword(newCredential);
+        return ResponseEntity.ok().body(newCredential);
+    }
 
 }
