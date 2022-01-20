@@ -40,4 +40,21 @@ public class IndexController {
     public ResponseEntity<List<Employee>> findAllEmployees() {
         return ResponseEntity.ok(employeeService.getAllEmployees());
     }
+
+    @GetMapping("/user")
+    @RolesAllowed("user")
+    public ResponseEntity<String> getUserInfo() {
+        return ResponseEntity.ok("User info");
+    }
+
+    @GetMapping("/admin")
+    @RolesAllowed("admin")
+    public ResponseEntity<String> getAdminInfo() {
+        return ResponseEntity.ok("Admin info");
+    }
+
+    @GetMapping("/public")
+    public ResponseEntity<String> getPublicInfo() {
+        return ResponseEntity.ok("Public info");
+    }
 }
