@@ -1,8 +1,10 @@
 package com.hendisantika.controller;
 
+import com.hendisantika.dto.LoginDTO;
 import com.hendisantika.dto.UserDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.keycloak.admin.client.Keycloak;
+import org.keycloak.admin.client.KeycloakBuilder;
 import org.keycloak.admin.client.resource.UserResource;
 import org.keycloak.admin.client.resource.UsersResource;
 import org.keycloak.representations.idm.ClientRepresentation;
@@ -11,6 +13,7 @@ import org.keycloak.representations.idm.RoleRepresentation;
 import org.keycloak.representations.idm.UserRepresentation;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
@@ -77,9 +80,13 @@ public class KeycloakController {
         userRepresentation.setEnabled(true);
         Map<String, List<String>> attributes = new HashMap<>();
         attributes.put("description", Arrays.asList(userDTO.getDescription()));
-        attributes.put("businessID", userDTO.getBusinessId());
+        attributes.put("businessId", userDTO.getBusinessId());
+        attributes.put("warehouseId", userDTO.getWarehouseId());
+        attributes.put("platformId", userDTO.getPlatformId());
         attributes.put("dob", Arrays.asList(userDTO.getDob()));
         attributes.put("phone", Arrays.asList(userDTO.getPhone()));
+        attributes.put("platformType", Arrays.asList(userDTO.getPlatformType()));
+        attributes.put("loginFrom", Arrays.asList(userDTO.getLoginFrom()));
         userRepresentation.setAttributes(attributes);
 
 //        userRepresentation.setRealmRoles(Arrays.asList("user"));
@@ -225,4 +232,68 @@ public class KeycloakController {
         return ResponseEntity.ok().body(newCredential);
     }
 
+
+//    @GetMapping(path = "/info")
+//    public UserDTO getUserInfo() {
+//        KeycloakAuthenticationToken authentication = (KeycloakAuthenticationToken)
+//                SecurityContextHolder.getContext().getAuthentication();
+//
+//        Principal principal = (Principal) authentication.getPrincipal();
+//        String dob = "";
+//        String phone = "";
+//        List<String> warehouses = new ArrayList<>();
+//        if (principal instanceof KeycloakPrincipal) {
+//            KeycloakPrincipal kPrincipal = (KeycloakPrincipal) principal;
+//            IDToken token = kPrincipal.getKeycloakSecurityContext().getIdToken();
+//
+//            Map<String, Object> customClaims = token.getOtherClaims();
+//
+//            if (customClaims.containsKey("dob")) {
+//                dob = String.valueOf(customClaims.get("dob"));
+//            }else if (customClaims.containsValue("phone")) {
+//
+//            }
+//        }
+//        UserDTO userDTO = new UserDTO();
+//        userDTO.setUsername(principal.getName());
+//        userDTO.setDob(dob);
+//        userDTO.setBusinessId(userDTO.getBusinessId());
+//        userDTO.setWarehouseId(userDTO.getWarehouseId());
+//        userDTO.setPlatformId(userDTO.getPlatformId());
+//        userDTO.setEmail(userDTO.getEmail());
+//        userDTO.setRole(userDTO.getRole());
+//        return userDTO;
+//    }
+
+    @GetMapping(value = "/login", produces = MediaType.APPLICATION_JSON_VALUE)
+    public Map<String, Object> login(@RequestBody LoginDTO loginDTO) {
+        Keycloak keycloak = KeycloakBuilder.builder()
+                .serverUrl("https://dev.auth.portal.powerbiz.asia/auth")
+                .realm("PowerBiz")
+                .username(loginDTO.getUsername())
+                .password(loginDTO.getPassword())
+                .clientId("login-app")
+                .clientSecret("RD6vw5aRNDr2S8AJoZ50HNoz3LuMCKKw")
+                .build();
+        String accessToken = keycloak.tokenManager().getAccessToken().getToken();
+        Long expiresIn = keycloak.tokenManager().getAccessToken().getExpiresIn();
+        Long refreshExpiresIn = keycloak.tokenManager().getAccessToken().getRefreshExpiresIn();
+        String refreshToken = keycloak.tokenManager().getAccessToken().getRefreshToken();
+        String tokenType = keycloak.tokenManager().getAccessToken().getTokenType();
+        Integer notBeforePolicy = keycloak.tokenManager().getAccessToken().getNotBeforePolicy();
+        String sessionState = keycloak.tokenManager().getAccessToken().getSessionState();
+        String scope = keycloak.tokenManager().getAccessToken().getScope();
+
+        Map<String, Object> jwt = new HashMap<>();
+        jwt.put("access_token", accessToken);
+        jwt.put("expires_in", expiresIn);
+        jwt.put("refresh_expires_in", refreshExpiresIn);
+        jwt.put("refresh_token", refreshToken);
+        jwt.put("token_type", tokenType);
+        jwt.put("not-before-policy", notBeforePolicy);
+        jwt.put("not-before-session_state", sessionState);
+        jwt.put("scope", scope);
+
+        return jwt;
+    }
 }
