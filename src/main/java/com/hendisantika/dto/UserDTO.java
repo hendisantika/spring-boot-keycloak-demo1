@@ -25,5 +25,9 @@ public class UserDTO {
     private String lastName;
     private String description;
     private List<String> businessId;
+    private List<String> warehouseId;
+    private List<String> platformId;
     private String role;
+    private String platformType;
+    private String loginFrom;
 }
