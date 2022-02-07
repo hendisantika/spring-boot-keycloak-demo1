@@ -2,22 +2,35 @@
 is:
   keycloak:
     admin:
-      user: initial1
-      password: 1234
+      user: powerbiz_web_app_test
+      password: yf"YRcF7dJ='Y<3GuGbAtQ7.asdeasd
 server:
   port: 8888
 
 # Keycloak settings
 keycloak:
-  realm: SpringBootKeycloak
-  auth-server-url: http://localhost:8180/auth
-  ssl-required: none
+  #  realm: SpringBootKeycloak
+  realm: PowerBiz
+  #  auth-server-url: http://localhost:8080/auth
+  auth-server-url: https://dev.auth.portal.powerbiz.asia/auth
+  #  ssl-required: none
+  ssl-required: all
   resource: login-app
+  #  resource: springboot-keycloak
+  #  resource: app1
+  #  resource: powerbiz-dev
   use-resource-role-mappings: true
   bearer-only: true
   cors: true
   principal-attribute: preferred_username
   public-client: true
+#  client-id: login-app
+#  client-secret: RD6vw5aRNDr2S8AJoZ50HNoz3LuMCKKw
+#  scope: openid, profile
+#  authorization-grant-type: password
+
+
+
 #spring:
 #  main:
 #    allow-circular-references: true
@@ -25,7 +38,7 @@ spring:
   datasource:
     url: jdbc:mysql://localhost:3306/account?createDatabaseIfNotExist=true&useUnicode=true&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=Asia/Jakarta&useSSL=false&allowPublicKeyRetrieval=True
     username: root
-    password:
+    password: root
   jpa:
     hibernate:
       ddl-auto: create-drop
