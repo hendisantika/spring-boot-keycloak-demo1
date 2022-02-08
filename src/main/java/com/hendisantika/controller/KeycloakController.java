@@ -40,6 +40,9 @@ public class KeycloakController {
     @Value("${keycloak.resource}")
     private String keycloakClient;
 
+    @Value("${client-resource2}")
+    private String keycloakClient2;
+
     @Value("${keycloak.auth-server-url}")
     private String keycloakUrl;
 
@@ -126,6 +129,131 @@ public class KeycloakController {
                 break;
             }
         }
+
+        return new ResponseEntity<>(HttpStatus.valueOf(result.getStatus()));
+    }
+
+    @PostMapping("/dua")
+    public ResponseEntity<String> createUser2(@RequestBody UserDTO userDTO) {
+        if (StringUtils.isEmpty(userDTO.getUsername()) || StringUtils.isEmpty(userDTO.getPassword())) {
+            return ResponseEntity.badRequest().body("Empty username or password");
+        }
+        CredentialRepresentation credentials = new CredentialRepresentation();
+        credentials.setType(CredentialRepresentation.PASSWORD);
+        credentials.setValue(userDTO.getPassword());
+        credentials.setTemporary(false);
+        UserRepresentation userRepresentation = new UserRepresentation();
+        userRepresentation.setUsername(userDTO.getUsername());
+        userRepresentation.setEmail(userDTO.getEmail());
+        userRepresentation.setFirstName(userDTO.getFirstName());
+        userRepresentation.setLastName(userDTO.getLastName());
+
+        userRepresentation.setCredentials(Arrays.asList(credentials));
+        userRepresentation.setEnabled(true);
+        Map<String, List<String>> attributes = new HashMap<>();
+        attributes.put("description", Arrays.asList(userDTO.getDescription()));
+        attributes.put("businessID", userDTO.getBusinessId());
+        userRepresentation.setAttributes(attributes);
+
+//        userRepresentation.setRealmRoles(Arrays.asList("user"));
+//        userRepresentation.setClientRoles(new HashMap<String, List<String>>() {{
+//            put(keycloakClient, Arrays.asList("user"));
+//        }});
+
+        Keycloak keycloak = getKeycloakInstance();
+
+        Response result = keycloak.realm(keycloakRealm).users().create(userRepresentation);
+        // Tambahan start
+//        RealmResource realmResource = keycloak.realm(keycloakRealm);
+//        UsersResource userResource = realmResource.users();
+//        RoleRepresentation testerRealmRole = realmResource.roles().get("tester").toRepresentation();
+//
+//        String userId = result.getLocation().getPath().replaceAll(".*/([^/]+)$", "$1");
+//        userResource.get(userId).roles().realmLevel().add(Arrays.asList(testerRealmRole));
+//
+//        ClientRepresentation app1Client = realmResource.clients().findByClientId("app1").get(0);
+//        RoleRepresentation userClientRole = realmResource.clients().get(app1Client.getId()).roles().get("user").toRepresentation();
+//
+//        userResource.get(userId).roles().clientLevel(app1Client.getId()).add(Arrays.asList(userClientRole));
+        // Tambahan end
+
+        ClientRepresentation clientRepresentation = keycloak.realm(keycloakRealm).clients().findByClientId("myclient2").get(0);
+        List<RoleRepresentation> roles = keycloak.realm(keycloakRealm).clients().get(clientRepresentation.getId()).roles().list();
+
+        Optional<UserRepresentation> newUser = keycloak.realm(keycloakRealm).users().search(userDTO.getUsername()).stream()
+                .filter(u -> u.getUsername().equals(userDTO.getUsername())).findFirst();
+
+        UserResource userResource = keycloak.realm(keycloakRealm).users().get(newUser.get().getId());
+
+        //userResource.roles().clientLevel(clientRepresentation.getId()).add(Arrays.asList(roles.get(1)));
+        for (RoleRepresentation role : roles) {
+            if (role.getName().equalsIgnoreCase(userDTO.getRole().toLowerCase())) {
+                userResource.roles().clientLevel(clientRepresentation.getId()).add(Arrays.asList(role));
+                break;
+            }
+        }
+
+        ///
+
+        ClientRepresentation clientRepresentation2 = keycloak.realm(keycloakRealm).clients().findByClientId("login-app").get(0);
+        List<RoleRepresentation> roles2 = keycloak.realm(keycloakRealm).clients().get(clientRepresentation2.getId()).roles().list();
+
+
+        //userResource.roles().clientLevel(clientRepresentation.getId()).add(Arrays.asList(roles.get(1)));
+//        for (RoleRepresentation role : roles2) {
+//            if (role.getName().equalsIgnoreCase(userDTO.getRole2().toLowerCase())) {
+//                userResource.roles().clientLevel(clientRepresentation2.getId()).add(Arrays.asList(role));
+//                break;
+//            }
+//        }
+
+        return new ResponseEntity<>(HttpStatus.valueOf(result.getStatus()));
+    }
+
+    @PostMapping("/multiclient")
+    public ResponseEntity<String> createUser4(@RequestBody UserDTO userDTO) {
+        if (StringUtils.isEmpty(userDTO.getUsername()) || StringUtils.isEmpty(userDTO.getPassword())) {
+            return ResponseEntity.badRequest().body("Empty username or password");
+        }
+
+        CredentialRepresentation credentials = new CredentialRepresentation();
+        credentials.setType(CredentialRepresentation.PASSWORD);
+        credentials.setValue(userDTO.getPassword());
+        credentials.setTemporary(false);
+        UserRepresentation userRepresentation = new UserRepresentation();
+        userRepresentation.setUsername(userDTO.getUsername());
+        userRepresentation.setEmail(userDTO.getEmail());
+        userRepresentation.setFirstName(userDTO.getFirstName());
+        userRepresentation.setLastName(userDTO.getLastName());
+
+        userRepresentation.setCredentials(List.of(credentials));
+        userRepresentation.setEnabled(true);
+        Map<String, List<String>> attributes = new HashMap<>();
+        attributes.put("description", List.of(userDTO.getDescription()));
+        attributes.put("businessId", userDTO.getBusinessId());
+        attributes.put("warehouseId", userDTO.getWarehouseId());
+        attributes.put("platformId", userDTO.getPlatformId());
+        attributes.put("dob", List.of(userDTO.getDob()));
+        attributes.put("phone", List.of(userDTO.getPhone()));
+        attributes.put("platformType", List.of(userDTO.getPlatformType()));
+        attributes.put("loginFrom", List.of(userDTO.getLoginFrom()));
+        userRepresentation.setAttributes(attributes);
+
+
+        Keycloak keycloak = getKeycloakInstance();
+
+        Response result = keycloak.realm(keycloakRealm).users().create(userRepresentation);
+
+        List<UserRepresentation> user = keycloak.realm(keycloakRealm).users().search(userDTO.getUsername(), true);
+        UserResource userResource = keycloak.realm(keycloakRealm).users().get(user.get(0).getId());
+
+        ClientRepresentation cr1 = keycloak.realm(keycloakRealm).clients().findByClientId(keycloakClient).get(0);
+        ClientRepresentation cr2 = keycloak.realm(keycloakRealm).clients().findByClientId(keycloakClient2).get(0);
+        RoleRepresentation rr1 = keycloak.realm(keycloakRealm).clients().get(cr1.getId()).roles().get("seller").toRepresentation();
+        RoleRepresentation rr2 = keycloak.realm(keycloakRealm).clients().get(cr2.getId()).roles().get("sales").toRepresentation();
+
+        userResource.roles().clientLevel(cr1.getId()).add(List.of(rr1));
+        userResource.roles().clientLevel(cr2.getId()).add(List.of(rr2));
 
         return new ResponseEntity<>(HttpStatus.valueOf(result.getStatus()));
     }

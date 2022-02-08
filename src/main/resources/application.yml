@@ -2,8 +2,8 @@
 is:
   keycloak:
     admin:
-      user: powerbiz_web_app_test
-      password: yf"YRcF7dJ='Y<3GuGbAtQ7.asdeasd
+      user: powerbiz_web_app_testing
+      password: yf"YRcF7dJ='Y<3GuGbAtQ7.qqweqwrqwfsdfsdf
 server:
   port: 8888
 
@@ -15,7 +15,8 @@ keycloak:
   auth-server-url: https://dev.auth.portal.powerbiz.asia/auth
   #  ssl-required: none
   ssl-required: all
-  resource: login-app
+  resource: powerbiz-dev
+
   #  resource: springboot-keycloak
   #  resource: app1
   #  resource: powerbiz-dev
@@ -28,7 +29,7 @@ keycloak:
 #  client-secret: RD6vw5aRNDr2S8AJoZ50HNoz3LuMCKKw
 #  scope: openid, profile
 #  authorization-grant-type: password
-
+client-resource2: login-app
 
 
 #spring:
